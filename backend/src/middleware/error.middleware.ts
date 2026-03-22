@@ -1,5 +1,5 @@
 // src/middleware/error.middleware.ts
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
 export const errorHandler = (
@@ -14,7 +14,7 @@ export const errorHandler = (
     return res.status(400).json({
       success: false,
       message: 'Validation error',
-      errors: error.errors,
+      errors: error.issues,
     });
   }
 

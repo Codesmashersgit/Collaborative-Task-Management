@@ -1,8 +1,8 @@
 // src/server.ts
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import { createApp } from './app';
-import { setupSocketHandlers } from './src/socket/socket.handler';
+import { createApp } from './app.js';
+import { setupSocketHandlers } from './socket/socket.handler.js';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -23,9 +23,18 @@ app.set('io', io);
 
 const PORT = process.env.PORT || 3001;
 
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+// Wait for prisma to connect
+prisma.$connect()
+  .then(() => {
+    console.log('✅ Connected to the database successfully');
+    httpServer.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Failed to connect to the database:', err.message);
+    process.exit(1);
+  });
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {

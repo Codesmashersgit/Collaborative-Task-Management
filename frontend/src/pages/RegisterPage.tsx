@@ -1,8 +1,9 @@
-// frontend/src/pages/RegisterPage.tsx
 import React, { useState } from 'react';
-import companyLogo from '../assets/react.svg'; // Replace with your company logo
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { Mail, Lock, Sparkles, User, ArrowRight, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 
-export const RegisterPage = () => {
+const RegisterPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -10,143 +11,185 @@ export const RegisterPage = () => {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Basic validation
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match");
+      setError("Passwords don't match. Please check and try again.");
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      alert(`Registered successfully as ${formData.name}`);
-      setIsLoading(false);
-    }, 1500);
+    try {
+      await register(formData.email, formData.password, formData.name);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex w-1/2 bg-blue-600 text-white flex-col justify-center items-center p-12">
-        <img src={companyLogo} alt="Company Logo" className="w-32 mb-6" />
-        <h1 className="text-4xl font-[Poppins] mb-4 text-center">Welcome to CollabHub</h1>
-        <p className="text-lg max-w-md text-gray-200 text-center">
-          Join our platform to manage your projects, collaborate with your team, and grow professionally.
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute top-0 -left-20 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 -right-20 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Right Side - Form */}
-      <div className="flex flex-1 justify-center items-center bg-gray-50 p-6 sm:p-12">
-        <div className="w-full max-w-md space-y-8">
-          {/* Logo for mobile */}
-          <div className="lg:hidden flex justify-center mb-6">
-            <img src={companyLogo} alt="Company Logo" className="w-24" />
+      <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-12 items-center relative z-10">
+        {/* Left Side: Branding & Perks */}
+        <div className="hidden lg:block space-y-12">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40">
+              <Sparkles className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white tracking-tight font-heading">TaskFlow</h1>
           </div>
 
-          <h2 className="mt-6 text-center text-3xl font-[Poppins] text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <a href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-              Sign in
-            </a>
-          </p>
+          <div className="space-y-6">
+            <h2 className="text-6xl font-bold text-white leading-tight font-heading">
+              Join the <br />
+              <span className="text-indigo-500">elite teams.</span>
+            </h2>
+            <p className="text-gray-400 text-xl leading-relaxed max-w-lg">
+              Experience the next generation of project management with real-time collaboration and premium analytics.
+            </p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div className="space-y-4">
+            {[
+              "Real-time Kanban synchronization",
+              "Advanced team performance metrics",
+              "Secure enterprise-grade encryption",
+              "24/7 Priority support access"
+            ].map((text) => (
+              <div key={text} className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />
+                </div>
+                <span className="text-gray-300 font-medium">{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Side: Register Form */}
+        <div className="glass-card p-8 md:p-12 border-white/10 shadow-2xl">
+          <div className="mb-8 text-center lg:text-left">
+            <h3 className="text-3xl font-bold text-white mb-2 font-heading">Get Started</h3>
+            <p className="text-gray-400 font-medium">Create your professional workspace today.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
-                {error}
+              <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
-            <div className="rounded-md shadow-sm -space-y-px">
-              <div>
-                <label htmlFor="name" className="sr-only">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Full Name"
-                  className="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-1 uppercase tracking-widest text-[10px]">Full Name</label>
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
+                  <input
+                    name="name"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="John Doe"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all font-medium text-sm"
+                  />
+                </div>
               </div>
-              <div>
-                <label htmlFor="email" className="sr-only">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Email address"
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-1 uppercase tracking-widest text-[10px]">Email Address</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="john@company.com"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all font-medium text-sm"
+                  />
+                </div>
               </div>
-              <div>
-                <label htmlFor="password" className="sr-only">
-                  Password
-                </label>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-500 ml-1 uppercase tracking-widest text-[10px]">Create Password</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
                 <input
-                  id="password"
                   name="password"
                   type="password"
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Password"
-                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="••••••••"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all font-medium text-sm"
                 />
               </div>
-              <div>
-                <label htmlFor="confirmPassword" className="sr-only">
-                  Confirm Password
-                </label>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-500 ml-1 uppercase tracking-widest text-[10px]">Confirm Password</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
                 <input
-                  id="confirmPassword"
                   name="confirmPassword"
                   type="password"
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="Confirm Password"
-                  className="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="••••••••"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all font-medium text-sm"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              disabled={isSubmitting}
+              className="w-full btn-premium py-4 rounded-2xl text-white font-bold text-lg flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 group mt-2"
             >
-              {isLoading ? 'Creating account...' : 'Create Account'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Creating Account...</span>
+                </>
+              ) : (
+                <>
+                  <span>Create Free Account</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </button>
           </form>
 
-          <div className="text-center text-sm text-gray-600 mt-4">
-            <a href="/help" className="hover:text-blue-600">
-              Need Help?
-            </a>
+          <div className="mt-8 text-center">
+            <p className="text-gray-400 font-medium">
+              Already a member?{' '}
+              <Link to="/login" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors ml-1">
+                Sign In
+              </Link>
+            </p>
           </div>
         </div>
       </div>

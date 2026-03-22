@@ -1,5 +1,6 @@
 // src/repositories/user.repository.ts
-import { PrismaClient, User } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import type { User } from '@prisma/client';
 
 export class UserRepository {
   constructor(private prisma: PrismaClient) {}
@@ -12,7 +13,7 @@ export class UserRepository {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string): Promise<any | null> {
     return this.prisma.user.findUnique({
       where: { id },
       select: { id: true, email: true, name: true, createdAt: true },
@@ -25,7 +26,7 @@ export class UserRepository {
     });
   }
 
-  async update(id: string, data: { name?: string }): Promise<User> {
+  async update(id: string, data: { name?: string }): Promise<any> {
     return this.prisma.user.update({
       where: { id },
       data,

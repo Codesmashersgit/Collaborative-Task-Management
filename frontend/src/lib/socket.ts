@@ -56,7 +56,7 @@ export const disconnectSocket = () => {
  * Subscribe to task updates
  * @param callback Function to call when task is updated
  */
-export const onTaskUpdate = (callback: (task: Task) => void) => {
+export const onTaskUpdate = (callback: (data: { type: string, data: any }) => void) => {
   const s = getSocket();
   s.on('task:updated', callback);
   return () => s.off('task:updated', callback);

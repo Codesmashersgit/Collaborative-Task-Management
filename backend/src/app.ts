@@ -3,8 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import 'express-async-errors';
-import { errorHandler } from './middleware/error.middleware';
-import { setupRoutes } from './routes';
+import { errorHandler } from './middleware/error.middleware.js';
+import { setupRoutes } from './routes.js';
 
 export const createApp = () => {
   const app = express();

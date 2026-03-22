@@ -1,136 +1,147 @@
-// frontend/src/pages/LoginPage.tsx
 import React, { useState } from 'react';
-import { FcApproval } from "react-icons/fc";
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { Mail, Lock, Sparkles, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 
-
-export const LoginPage = () => {
+const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
+    setIsSubmitting(true);
 
-    // Simulate login API
-    setTimeout(() => {
-      if (email === 'admin@example.com' && password === 'password') {
-        alert('Logged in successfully!');
-      } else {
-        setError('Invalid email or password');
-      }
-      setIsLoading(false);
-    }, 1000);
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex w-1/2 bg-blue-600 text-white flex-col justify-center items-center p-10">
-        <FcApproval size={96}/>
-        <h1 className="text-4xl font-bold mb-4 font-[Poppins]">Welcome to CollabHub</h1>
-        <p className="text-lg max-w-md text-gray-200 text-center">
-          Access your dashboard, manage projects, and collaborate with your team seamlessly.
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute top-0 -left-20 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 -right-20 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Right Side - Form */}
-      <div className="flex flex-1 justify-center items-center bg-gray-50 p-6 sm:p-12">
-        <div className="w-full max-w-md space-y-8">
-          {/* Logo for mobile */}
-          <div className="lg:hidden flex justify-center mb-6">
-          <FcApproval size={96}/>
+      <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-12 items-center relative z-10">
+        {/* Left Side: Branding & Info */}
+        <div className="hidden lg:block space-y-12">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40">
+              <Sparkles className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-white tracking-tight font-heading">TaskFlow</h1>
           </div>
 
-          <h2 className="mt-6 text-center text-3xl font-[Poppins] text-gray-900">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <a href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-              start your free trial
-            </a>
-          </p>
+          <div className="space-y-6">
+            <h2 className="text-6xl font-bold text-white leading-tight font-heading">
+              Manage projects <br />
+              <span className="text-indigo-500">without the mess.</span>
+            </h2>
+            <p className="text-gray-400 text-xl leading-relaxed max-w-lg">
+              The industry standard task management platform for high-performance engineering teams.
+            </p>
+          </div>
 
-          {/* Login Form */}
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div className="flex gap-12">
+            <div>
+              <p className="text-3xl font-bold text-white">99.9%</p>
+              <p className="text-gray-500 text-sm font-medium mt-1 uppercase tracking-widest">Uptime</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">20k+</p>
+              <p className="text-gray-500 text-sm font-medium mt-1 uppercase tracking-widest">Users</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">150+</p>
+              <p className="text-gray-500 text-sm font-medium mt-1 uppercase tracking-widest">Countries</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Login Form */}
+        <div className="glass-card p-8 md:p-12 border-white/10 shadow-2xl">
+          <div className="mb-10 text-center lg:text-left">
+            <h3 className="text-3xl font-bold text-white mb-3 font-heading">Welcome Back</h3>
+            <p className="text-gray-400 font-medium">Please enter your details to sign in.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</div>
+              <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-400 text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <span>{error}</span>
+              </div>
             )}
 
-            <div className="rounded-md shadow-sm -space-y-px">
-              <div>
-                <label htmlFor="email" className="sr-only">
-                  Email address
-                </label>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-gray-400 ml-1 uppercase tracking-widest">Email Address</label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
                 <input
-                  id="email"
-                  name="email"
                   type="email"
-                  autoComplete="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Email address"
+                  placeholder="name@company.com"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 transition-all font-medium"
                 />
               </div>
-              <div>
-                <label htmlFor="password" className="sr-only">
-                  Password
-                </label>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-sm font-bold text-gray-400 uppercase tracking-widest">Password</label>
+                <Link to="/forgot-password" title='Coming Soon' className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Forgot Password?</Link>
+              </div>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-indigo-500 transition-colors" />
                 <input
-                  id="password"
-                  name="password"
                   type="password"
-                  autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                  placeholder="Password"
+                  placeholder="••••••••"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 transition-all font-medium"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember_me"
-                  name="remember_me"
-                  type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember_me" className="ml-2 block text-sm text-gray-900">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <a href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-                  Forgot your password?
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {isLoading ? 'Signing in...' : 'Sign in'}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full btn-premium py-4 rounded-2xl text-white font-bold text-lg flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </button>
           </form>
 
-          {/* Additional links */}
-          <div className="text-center text-sm text-gray-600 mt-4">
-            <a href="/help" className="hover:text-blue-600">
-              Need Help?
-            </a>
+          <div className="mt-8 text-center bg-white/5 py-4 rounded-2xl border border-white/5">
+            <p className="text-gray-400 font-medium">
+              Don't have an account?{' '}
+              <Link to="/register" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors ml-1">
+                Create Account
+              </Link>
+            </p>
           </div>
         </div>
       </div>

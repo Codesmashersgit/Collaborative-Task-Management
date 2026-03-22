@@ -1,10 +1,11 @@
 // src/middleware/auth.middleware.ts
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 interface JwtPayload {
   id: string;
   email: string;
+  role: string;
 }
 
 declare global {
@@ -29,4 +30,13 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   } catch (error) {
     res.status(401).json({ success: false, message: 'Invalid or expired token' });
   }
+};
+
+export const authorize = (roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+    next();
+  };
 };

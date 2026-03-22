@@ -1,5 +1,6 @@
 // src/repositories/task.repository.ts
-import { PrismaClient, Task, Priority, Status } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import type { Task, Priority, Status } from '@prisma/client';
 
 export class TaskRepository {
   constructor(private prisma: PrismaClient) {}
@@ -84,6 +85,25 @@ export class TaskRepository {
         assignedToId: userId,
         dueDate: { lt: new Date() },
         status: { not: 'Completed' },
+      },
+      include: {
+        creator: { select: { id: true, name: true, email: true } },
+        assignedTo: { select: { id: true, name: true, email: true } },
+      },
+    });
+  }
+
+  async searchTasks(query: string, userId: string): Promise<Task[]> {
+    return this.prisma.task.findMany({
+      where: {
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+        ],
+        OR: [
+          { creatorId: userId },
+          { assignedToId: userId },
+        ],
       },
       include: {
         creator: { select: { id: true, name: true, email: true } },

@@ -1,13 +1,14 @@
 // src/services/task.service.ts
-import { TaskRepository } from '../repositories/task.repository';
-import { CreateTaskInput, UpdateTaskInput } from '../dto/task.dto';
+import { TaskRepository } from '../repositories/task.repository.js';
+import type { CreateTaskInput, UpdateTaskInput } from '../dto/task.dto.js';
 import { Priority, Status } from '@prisma/client';
+import { NotificationService } from './notification.js';
 
 export class TaskService {
   constructor(
     private taskRepository: TaskRepository,
     private notificationService: NotificationService
-  ) {}
+  ) { }
 
   /**
    * Creates a new task and sends notification to assignee
@@ -106,5 +107,9 @@ export class TaskService {
         totalOverdue: overdueTasks.length,
       },
     };
+  }
+
+  async searchTasks(query: string, userId: string) {
+    return this.taskRepository.searchTasks(query, userId);
   }
 }
