@@ -61,7 +61,9 @@ export const useAuth = (): AuthHook => {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const { user: userData, token } = await authApi.login({ email, password });
+    const result = await authApi.login({ email, password });
+    const userData = result.user;
+    const token = result.token;
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', token);
@@ -70,7 +72,9 @@ export const useAuth = (): AuthHook => {
   }, []);
 
   const register = useCallback(async (email: string, password: string, name: string) => {
-    const { user: userData, token } = await authApi.register({ email, password, name });
+    const result = await authApi.register({ email, password, name });
+    const userData = result.user;
+    const token = result.token;
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', token);
@@ -81,13 +85,18 @@ export const useAuth = (): AuthHook => {
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
+    } catch (err) {
+      console.error('Logout API failed:', err);
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.clear();
+      sessionStorage.clear();
       setUser(null);
       disconnectSocket();
+      window.location.href = '/login';
     }
   }, []);
+
+
 
   return {
     user,

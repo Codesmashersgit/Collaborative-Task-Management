@@ -48,12 +48,14 @@ api.interceptors.response.use(
 export const authApi = {
   register: async (data: { email: string; password: string; name: string }) => {
     const response = await api.post<AuthResponse>('/auth/register', data);
-    return response.data; // { token, user }
+    // Backend returns { success, data: User, token }
+    return { user: response.data.data, token: response.data.token };
   },
 
   login: async (data: { email: string; password: string }) => {
     const response = await api.post<AuthResponse>('/auth/login', data);
-    return response.data; // { token, user }
+    // Backend returns { success, data: User, token }
+    return { user: response.data.data, token: response.data.token };
   },
 
   logout: async () => {
@@ -63,12 +65,12 @@ export const authApi = {
 
   getCurrentUser: async () => {
     const response = await api.get<ApiResponse<User>>('/auth/me');
-    return response.data.data; // ✅ Return actual User
+    return response.data.data; // Return actual User
   },
 
   updateProfile: async (data: { name: string }) => {
     const response = await api.patch<ApiResponse<User>>('/auth/profile', data);
-    return response.data.data; // ✅ Return updated User
+    return response.data.data; // Return updated User
   },
 };
 
@@ -116,6 +118,11 @@ export const taskApi = {
     const response = await api.get<ApiResponse<DashboardData>>('/tasks/dashboard');
     return response.data;
   },
+
+  search: async (query: string) => {
+    const response = await api.get<ApiResponse<Task[]>>('/tasks/search', { params: { q: query } });
+    return response.data;
+  },
 };
 
 // -------- Notification API --------
@@ -135,3 +142,48 @@ export const notificationApi = {
     return response.data;
   },
 };
+
+// -------- Admin API --------
+export const adminApi = {
+  getStats: async () => {
+    const response = await api.get<ApiResponse<any>>('/admin/stats');
+    return response.data;
+  },
+  getUsers: async () => {
+    const response = await api.get<ApiResponse<User[]>>('/admin/users');
+    return response.data;
+  },
+  updateRole: async (userId: string, role: 'ADMIN' | 'MEMBER') => {
+    const response = await api.patch<ApiResponse<User>>('/admin/role', { userId, role });
+    return response.data;
+  },
+  deleteUser: async (userId: string) => {
+    const response = await api.delete<ApiResponse<void>>(`/admin/users/${userId}`);
+    return response.data;
+  },
+  deleteTask: async (taskId: string) => {
+    const response = await api.delete<ApiResponse<void>>(`/admin/tasks/${taskId}`);
+    return response.data;
+  },
+  inviteUser: async (data: any) => {
+    const response = await api.post<ApiResponse<User>>('/admin/users', data);
+    return response.data;
+  },
+};
+
+// -------- Invitation API --------
+export const invitationApi = {
+  get: async (token: string) => {
+    const response = await api.get<ApiResponse<any>>(`/invitations/${token}`);
+    return response.data;
+  },
+  accept: async (data: any) => {
+    const response = await api.post<ApiResponse<any>>('/invitations/accept', data);
+    return response.data;
+  },
+};
+
+
+
+
+

@@ -42,6 +42,7 @@ export interface DashboardData {
     totalAssigned: number;
     totalCreated: number;
     totalOverdue: number;
+    totalCompleted: number;
   };
 }
 
@@ -64,10 +65,8 @@ export interface UpdateTaskInput {
 
 export interface AuthResponse {
   success: boolean;
-  data: {
-    user: User;
-    token: string;
-  };
+  data: User;
+  token: string;
 }
 
 export interface ApiResponse<T> {
