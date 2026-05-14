@@ -77,3 +77,14 @@ model Notification {
   @@index([userId, read])
   @@map("notifications")
 }
+
+model Invitation {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      Role     @default(MEMBER)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("invitations")
+}

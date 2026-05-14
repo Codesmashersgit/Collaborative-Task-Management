@@ -111,4 +111,18 @@ export class TaskRepository {
       },
     });
   }
+
+  async getUserById(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, name: true, role: true }
+    });
+  }
+
+  async getAllAdmins() {
+    return this.prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true }
+    });
+  }
 }

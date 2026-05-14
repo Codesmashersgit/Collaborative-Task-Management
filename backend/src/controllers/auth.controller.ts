@@ -37,6 +37,12 @@ export class AuthController {
     };
 
     me = async (req: Request, res: Response) => {
-        res.json({ success: true, data: req.user });
+        try {
+            const user = await this.authService.getProfile(req.user!.id);
+            res.json({ success: true, data: user });
+        } catch (error) {
+            res.status(404).json({ success: false, message: 'User not found' });
+        }
     };
+
 }

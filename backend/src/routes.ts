@@ -9,7 +9,13 @@ import { TaskRepository } from './repositories/task.repository.js';
 import { NotificationService } from './services/notification.js';
 import { UserController } from './controllers/user.controller.js';
 import { UserService } from './services/user.service.js';
+import { AdminController } from './controllers/admin.controller.js';
+import { AdminService } from './services/admin.service.js';
+import { MailService } from './services/mail.service.js';
+import { InvitationController } from './controllers/invitation.controller.js';
 import { authenticate, authorize } from './middleware/auth.middleware.js';
+
+
 
 export const setupRoutes = (app: any) => {
     const router = Router();
@@ -22,10 +28,15 @@ export const setupRoutes = (app: any) => {
     const authService = new AuthService(userRepository);
     const userService = new UserService(userRepository);
     const taskService = new TaskService(taskRepository, notificationService);
+    const mailService = new MailService();
+    const adminService = new AdminService(prisma, mailService);
 
     const authController = new AuthController(authService);
     const userController = new UserController(userService);
     const taskController = new TaskController(taskService);
+    const adminController = new AdminController(adminService);
+    const invitationController = new InvitationController(prisma);
+
 
     // Auth Routes
     router.post('/auth/register', authController.register);
@@ -39,7 +50,7 @@ export const setupRoutes = (app: any) => {
     router.patch('/users/profile', authenticate, userController.updateProfile);
 
     // Task Routes
-    router.post('/tasks', authenticate, authorize(['ADMIN']), taskController.createTask);
+    router.post('/tasks', authenticate, authorize(['ADMIN', 'MEMBER']), taskController.createTask);
     router.get('/tasks', authenticate, taskController.getTasks);
     router.get('/tasks/search', authenticate, taskController.searchTasks);
     router.get('/tasks/dashboard', authenticate, taskController.getDashboard);
@@ -47,5 +58,20 @@ export const setupRoutes = (app: any) => {
     router.patch('/tasks/:id', authenticate, taskController.updateTask);
     router.delete('/tasks/:id', authenticate, taskController.deleteTask);
 
+    // Admin Routes
+    router.get('/admin/stats', authenticate, authorize(['ADMIN']), adminController.getStats);
+    router.get('/admin/users', authenticate, authorize(['ADMIN']), adminController.getUsers);
+    router.patch('/admin/role', authenticate, authorize(['ADMIN']), adminController.updateRole);
+    router.delete('/admin/users/:id', authenticate, authorize(['ADMIN']), adminController.deleteUser);
+    router.delete('/admin/tasks/:id', authenticate, authorize(['ADMIN']), adminController.deleteTask);
+    router.post('/admin/users', authenticate, authorize(['ADMIN']), adminController.createUser);
+
+    // Invitation Routes
+    router.get('/invitations/:token', invitationController.getInvitation);
+    router.post('/invitations/accept', invitationController.acceptInvitation);
+
+
+
     app.use('/api/v1', router);
 };
+

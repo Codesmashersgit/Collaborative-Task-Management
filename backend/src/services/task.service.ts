@@ -55,9 +55,10 @@ export class TaskService {
    */
   async updateTask(id: string, userId: string, input: UpdateTaskInput) {
     const existingTask = await this.getTaskById(id);
+    const updater = await this.taskRepository.getUserById(userId);
 
     // Check authorization
-    if (existingTask.creatorId !== userId && existingTask.assignedToId !== userId) {
+    if (existingTask.creatorId !== userId && existingTask.assignedToId !== userId && updater.role !== 'ADMIN') {
       throw new Error('Unauthorized to update this task');
     }
 
@@ -68,13 +69,28 @@ export class TaskService {
 
     const updatedTask = await this.taskRepository.update(id, updateData);
 
-    // If assignee changed, send notification
+    // If assignee changed, send notification to new assignee
     if (input.assignedToId && input.assignedToId !== existingTask.assignedToId) {
       await this.notificationService.create({
         userId: input.assignedToId,
         message: `Task reassigned to you: ${updatedTask.title}`,
         type: 'TASK_REASSIGNED',
       });
+    }
+
+    // Notify Admins if status changed by a non-admin or if progress is made
+    if (input.status && input.status !== existingTask.status) {
+      // Find all admins to notify
+      const admins = await this.taskRepository.getAllAdmins();
+      for (const admin of admins) {
+        if (admin.id !== userId) { // Don't notify the updater if they are an admin
+          await this.notificationService.create({
+            userId: admin.id,
+            message: `Member ${updater.name} updated task "${updatedTask.title}" to ${input.status}`,
+            type: 'TASK_PROGRESS_UPDATE',
+          });
+        }
+      }
     }
 
     return updatedTask;

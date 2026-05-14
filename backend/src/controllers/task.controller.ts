@@ -9,24 +9,43 @@ export class TaskController {
 
   createTask = async (req: Request, res: Response) => {
     const userId = req.user!.id;
-    const input = CreateTaskDto.parse(req.body);
+    const userRole = req.user!.role;
 
-    const task = await this.taskService.createTask(userId, input);
+    console.log(`[DEBUG] Attempting to create task. User: ${userId}, Role: ${userRole}`);
 
-    // Emit real-time update
-    const io = req.app.get('io');
-    emitTaskUpdate(io, { type: 'TASK_CREATED', data: task });
+    if (userRole !== 'ADMIN') {
+      console.log(`[DEBUG] Creation denied. Role ${userRole} is not ADMIN.`);
+      return res.status(403).json({ success: false, message: 'Only admins can create tasks' });
+    }
 
-    res.status(201).json({ success: true, data: task });
+    try {
+      const input = CreateTaskDto.parse(req.body);
+      const task = await this.taskService.createTask(userId, input);
+
+      // Emit real-time update
+      const io = req.app.get('io');
+      emitTaskUpdate(io, { type: 'TASK_CREATED', data: task });
+
+      console.log(`[DEBUG] Task created successfully: ${task.id}`);
+      res.status(201).json({ success: true, data: task });
+    } catch (err: any) {
+      console.error(`[DEBUG] Task creation error:`, err);
+      res.status(400).json({ success: false, message: err.message });
+    }
   };
 
   getTasks = async (req: Request, res: Response) => {
     const { status, priority, assignedToId, creatorId } = req.query;
+    const userId = req.user!.id;
+    const userRole = req.user!.role;
+
+    // If not admin, can only see assigned tasks
+    const effectiveAssignedToId = userRole === 'ADMIN' ? (assignedToId as string) : userId;
 
     const tasks = await this.taskService.getAllTasks({
       status: status as any,
       priority: priority as any,
-      assignedToId: assignedToId as string,
+      assignedToId: effectiveAssignedToId,
       creatorId: creatorId as string,
     });
 

@@ -37,7 +37,16 @@ export class AuthService {
         return { user, token };
     }
 
+    async getProfile(id: string) {
+        const user = await this.userRepository.findById(id);
+        if (!user) {
+            throw new Error('User not found');
+        }
+        return user;
+    }
+
     private generateToken(id: string, email: string, role: string) {
+
         return jwt.sign({ id, email, role }, process.env.JWT_SECRET!, {
             expiresIn: '7d',
         });
